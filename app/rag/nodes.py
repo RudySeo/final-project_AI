@@ -1,6 +1,5 @@
 from typing import List, Tuple
-from uuid import uuid4
-import os
+import os, tempfile, requests
 from app.core import llm_client
 from app.rag.state import GraphState, QueryState
 
@@ -19,13 +18,26 @@ os.makedirs(STORES_DIR, exist_ok=True)
 MAX_HISTORY = 10
 
 
-# PDF 가져오기
-def load_pdf(state: GraphState) -> GraphState:
-    pdf_id = str(uuid4())
-    state["pdf_id"] = pdf_id
-    loader = PyPDFLoader(state["file_path"])
-    state["documents"] = loader.load()
+# URL의 PDF를 임시파일로 저장하고 경로를 state['temp_path']에 기록
+def fetch_pdf(state: GraphState) -> GraphState:
+    url = state["file_path"]
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_file:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        temp_file.write(resp.content)
+        state["temp_path"] = temp_file.name
     return state
+
+
+# 임시파일을 읽어 state['documents']에 로드하고 항상 임시파일을 삭제
+def load_pdf(state: GraphState) -> GraphState:
+    temp_path = state.get("temp_path")
+    try:
+        state["documents"] = PyPDFLoader(temp_path).load()
+        return state
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
 
 # 문서 청크
@@ -44,7 +56,7 @@ def create_vectorstore(state: GraphState) -> GraphState:
 
 # FAISS 디스크 저장
 def save_vectorstore(state: GraphState) -> GraphState:
-    pdf_id = state.get("pdf_id")
+    pdf_id = str(state.get("pdf_id"))
     if not pdf_id:
         raise ValueError("pdf_id가 state에 존재하지 않습니다.")
 
@@ -62,7 +74,7 @@ def save_vectorstore(state: GraphState) -> GraphState:
 
 # 1.Vectorstore 로드
 def load_vectorstore(state: QueryState) -> QueryState:
-    pdf_id = state.get("pdf_id")
+    pdf_id = str(state.get("pdf_id"))
     if not pdf_id:
         raise ValueError("pdf_id가 state에 없습니다.")
 
