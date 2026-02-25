@@ -58,6 +58,6 @@
 
 ## 📄 추가 문서  
 
-- [프로젝트 소개 (Wiki)](../../wiki/01_프로젝트-소개)
+- [프로젝트 소개 (Wiki)](https://github.com/RudySeo/final-project_AI/wiki/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%86%8C%EA%B0%9C)
 - [기획 발표 자료 (PDF, Google Drive)](https://drive.google.com/file/d/1Z77Z9GfBNW_sZkw0HPKqHdN1baJ4IMEZ/view?usp=sharing)
 - [중간 발표 자료 (PDF, Google Drive)](https://drive.google.com/file/d/16jz149EbOBO0RoWTA0t9kU1WicXP6L5J/view?usp=sharing)
